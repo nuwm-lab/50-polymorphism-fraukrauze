@@ -9,7 +9,7 @@ namespace OOP_Lab2
     /// Базовий клас для вектора, що зберігає одновимірний масив елементів.
     /// Реалізує віртуальні методи для поліморфної поведінки.
     /// </summary>
-    public class Vector
+    public class Vector4
     {
         protected const int DEFAULT_SIZE = 4;
         
@@ -17,15 +17,16 @@ namespace OOP_Lab2
         protected double[] _elements;
 
         /// <summary>
-        /// Ініціалізує новий екземпляр класу <see cref="Vector"/> з розміром за замовчуванням (4).
+        /// Ініціалізує новий екземпляр класу <see cref="Vector4"/> з розміром за замовчуванням (4).
         /// </summary>
-        public Vector() : this(DEFAULT_SIZE) { }
+        public Vector4() : this(DEFAULT_SIZE) { }
 
         /// <summary>
-        /// Ініціалізує новий екземпляр класу <see cref="Vector"/> з вказаним розміром.
+        /// Ініціалізує новий екземпляр класу <see cref="Vector4"/> з вказаним розміром.
+        /// Цей конструктор використовується похідними класами (наприклад, Matrix4x4) для ініціалізації базового масиву.
         /// </summary>
         /// <param name="size">Розмір вектора. Має бути додатнім.</param>
-        public Vector(int size)
+        public Vector4(int size)
         {
             if (size <= 0) throw new ArgumentException("Розмір має бути додатнім.");
             this._size = size;
@@ -76,7 +77,7 @@ namespace OOP_Lab2
         /// Віртуальний метод для знаходження максимального елемента.
         /// </summary>
         /// <returns>Максимальний елемент вектора, або <see cref="double.NaN"/>, якщо він порожній.</returns>
-        public virtual double FindMax()
+        public virtual double GetMax()
         {
             return _elements.Length > 0 ? _elements.Max() : double.NaN;
         }
@@ -92,25 +93,27 @@ namespace OOP_Lab2
     }
 
     /// <summary>
-    /// Похідний клас для матриці, яка успадковує клас <see cref="Vector"/>, 
-    /// зберігаючи елементи в одномірному масиві, але перевизначає методи для 2D-формату.
+    /// Похідний клас для матриці 4x4, яка успадковує клас <see cref="Vector4"/>, 
+    /// зберігаючи елементи в одномірному масиві (довжиною 16), але перевизначає методи для 2D-формату.
     /// </summary>
-    public class Matrix : Vector
+    public class Matrix4x4 : Vector4
     {
+        private const int MATRIX_DIMENSION = 4;
         private int _rows;
         private int _cols;
 
         /// <summary>
-        /// Ініціалізує новий екземпляр класу <see cref="Matrix"/> з розміром за замовчуванням (4x4).
+        /// Ініціалізує новий екземпляр класу <see cref="Matrix4x4"/> з розміром 4x4.
         /// </summary>
-        public Matrix() : this(DEFAULT_SIZE, DEFAULT_SIZE) { }
+        public Matrix4x4() : this(MATRIX_DIMENSION, MATRIX_DIMENSION) { }
 
         /// <summary>
-        /// Ініціалізує новий екземпляр класу <see cref="Matrix"/> з вказаною кількістю рядків та стовпців.
+        /// Ініціалізує новий екземпляр класу <see cref="Matrix4x4"/> з вказаною кількістю рядків та стовпців.
+        /// Конструктор для гнучкості. Якщо розмір не 4x4, слідкуйте за коректністю індексації.
         /// </summary>
         /// <param name="rows">Кількість рядків.</param>
         /// <param name="cols">Кількість стовпців.</param>
-        public Matrix(int rows, int cols) : base(rows * cols)
+        public Matrix4x4(int rows, int cols) : base(rows * cols)
         {
             this._rows = rows;
             this._cols = cols;
@@ -160,12 +163,12 @@ namespace OOP_Lab2
         }
 
         /// <summary>
-        /// Перевизначений метод FindMax, який використовує базову реалізацію.
+        /// Перевизначений метод GetMax, який використовує базову реалізацію.
         /// </summary>
         /// <returns>Максимальний елемент матриці.</returns>
-        public override double FindMax()
+        public override double GetMax()
         {
-            return base.FindMax();
+            return base.GetMax();
         }
 
         /// <summary>
@@ -194,10 +197,12 @@ namespace OOP_Lab2
         {
             Console.OutputEncoding = Encoding.UTF8;
             
-            List<Vector> shapes = new List<Vector>();
+            // Використання базового типу Vector4 для демонстрації поліморфізму
+            List<Vector4> shapes = new List<Vector4>();
             
-            Console.WriteLine("--- ІНТЕРАКТИВНЕ СТВОРЕННЯ ВЕКТОРА (5 елементів) ---");
-            Vector interactiveVector = new Vector(5);
+            Console.WriteLine("--- ІНТЕРАКТИВНЕ СТВОРЕННЯ ВЕКТОРА (4 елементи) ---");
+            // Створюємо Vector4 - розмір 4
+            Vector4 interactiveVector = new Vector4();
             try
             {
                 interactiveVector.SetElementsFromConsole(); 
@@ -210,8 +215,9 @@ namespace OOP_Lab2
             
             Console.WriteLine("\n--- ДЕМОНСТРАЦІЯ SetElements та КОЛЕКЦІЇ (Поліморфізм) ---");
 
-            double[] matrixData = { 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9 };
-            Matrix predefinedMatrix = new Matrix(3, 3);
+            // Створюємо Matrix4x4 - розмір 4x4 (16 елементів)
+            double[] matrixData = { 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 10.0, 11.1, 12.2, 13.3, 14.4, 15.5, 16.6 }; // 16 елементів
+            Matrix4x4 predefinedMatrix = new Matrix4x4(); // 4x4
             try
             {
                 predefinedMatrix.SetElements(matrixData);
@@ -222,8 +228,9 @@ namespace OOP_Lab2
                 Console.WriteLine($"Помилка при ініціалізації матриці: {ex.Message}");
             }
 
-            double[] vectorData = { 10.0, -5.0, 25.5, 0.5 };
-            Vector predefinedVector = new Vector(4);
+            // Створюємо ще один Vector4 - розмір 4
+            double[] vectorData = { -10.0, -5.0, 25.5, 0.5 };
+            Vector4 predefinedVector = new Vector4();
             try
             {
                 predefinedVector.SetElements(vectorData);
@@ -236,16 +243,18 @@ namespace OOP_Lab2
 
 
             Console.WriteLine("\n==========================================");
-            Console.WriteLine("ВИКЛИК ВІРТУАЛЬНИХ МЕТОДІВ ЧЕРЕЗ КОЛЕКЦІЮ VECTOR (Пізнє зв'язування)");
+            Console.WriteLine("ВИКЛИК ВІРТУАЛЬНИХ МЕТОДІВ ЧЕРЕЗ КОЛЕКЦІЮ VECTOR4 (Пізнє зв'язування)");
             Console.WriteLine("==========================================");
 
             foreach (var obj in shapes)
             {
                 Console.WriteLine("------------------------------------------");
                 
+                // Динамічний поліморфізм: викликається Matrix4x4.Display() або Vector4.Display()
                 obj.Display(); 
                 
-                Console.WriteLine($"Максимальний елемент: {obj.FindMax():F2}"); 
+                // Динамічний поліморфізм: викликається Matrix4x4.GetMax() або Vector4.GetMax()
+                Console.WriteLine($"Максимальний елемент: {obj.GetMax():F2}"); 
             }
         }
     }
