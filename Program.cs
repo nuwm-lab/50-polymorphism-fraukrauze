@@ -3,104 +3,145 @@ using System.Linq;
 
 namespace OOP_Lab1
 {
-    public class Vector
+    // === Базовий клас Vector4 ===
+    public class Vector4
     {
-        protected int size;
-        protected double[] elements;
+        protected const int Size = 4;
+        protected double[] Elements { get; set; }
 
-        public Vector() : this(4) { }
-
-        public Vector(int size)
+        // Конструктор за замовчуванням (всі нулі)
+        public Vector4()
         {
-            this.size = size;
-            elements = new double[size];
+            Elements = new double[Size];
         }
 
-        public virtual void InputElements()
+        // Параметризований конструктор
+        public Vector4(params double[] elements)
         {
-            Console.WriteLine($"Введіть {size} елементів вектора:");
-            for (int i = 0; i < size; i++)
+            Elements = new double[Size];
+            for (int i = 0; i < Math.Min(Size, elements.Length); i++)
+                Elements[i] = elements[i];
+        }
+
+        // Віртуальний метод введення
+        public virtual void Input()
+        {
+            Console.WriteLine("Введіть 4 елементи вектора:");
+            for (int i = 0; i < Size; i++)
             {
                 Console.Write($"Елемент [{i}] = ");
-                while (!double.TryParse(Console.ReadLine(), out elements[i]))
+                while (!double.TryParse(Console.ReadLine(), out Elements[i]))
                     Console.Write("Некоректне значення, повторіть: ");
             }
         }
 
-        public virtual void Display()
+        // Віртуальний метод виводу
+        public virtual void Print()
         {
-            Console.WriteLine("Вектор: " + string.Join(", ", elements));
+            Console.WriteLine("Вектор4: " + string.Join(", ", Elements));
         }
 
-        public virtual double MaxElement()
+        // Віртуальний метод пошуку максимуму
+        public virtual double GetMaxElement()
         {
-            return elements.Length > 0 ? elements.Max() : double.NaN;
+            return Elements.Max();
         }
     }
 
-    public class Matrix : Vector
+    // === Похідний клас Matrix4x4 ===
+    public class Matrix4x4 : Vector4
     {
-        private int rows;
-        private int cols;
+        private const int Rows = 4;
+        private const int Cols = 4;
 
-        public Matrix() : this(4, 4) { }
-
-        public Matrix(int rows, int cols) : base(rows * cols)
+        // Конструктор за замовчуванням
+        public Matrix4x4()
         {
-            this.rows = rows;
-            this.cols = cols;
+            Elements = new double[Rows * Cols];
         }
 
-        public override void InputElements()
+        // Параметризований конструктор
+        public Matrix4x4(params double[] elements)
         {
-            Console.WriteLine($"Введіть елементи матриці {rows}x{cols}:");
-            for (int i = 0; i < rows; i++)
+            Elements = new double[Rows * Cols];
+            for (int i = 0; i < Math.Min(Rows * Cols, elements.Length); i++)
+                Elements[i] = elements[i];
+        }
+
+        // Перевизначення методу введення
+        public override void Input()
+        {
+            Console.WriteLine("Введіть елементи матриці 4x4:");
+            for (int i = 0; i < Rows; i++)
             {
-                for (int j = 0; j < cols; j++)
+                for (int j = 0; j < Cols; j++)
                 {
+                    int index = i * Cols + j;
                     Console.Write($"Елемент [{i},{j}] = ");
-                    int index = i * cols + j;
-                    while (!double.TryParse(Console.ReadLine(), out elements[index]))
+                    while (!double.TryParse(Console.ReadLine(), out Elements[index]))
                         Console.Write("Некоректне значення, повторіть: ");
                 }
             }
         }
 
-        public override void Display()
+        // Перевизначення методу виводу
+        public override void Print()
         {
-            Console.WriteLine($"Матриця {rows}x{cols}:");
-            for (int i = 0; i < rows; i++)
+            Console.WriteLine("Матриця 4x4:");
+            for (int i = 0; i < Rows; i++)
             {
-                for (int j = 0; j < cols; j++)
-                {
-                    Console.Write($"{elements[i * cols + j],8}");
-                }
+                for (int j = 0; j < Cols; j++)
+                    Console.Write($"{Elements[i * Cols + j],8}");
                 Console.WriteLine();
             }
         }
+
+        // Перевизначення методу пошуку максимуму
+        public override double GetMaxElement()
+        {
+            return Elements.Max();
+        }
     }
 
+    // === Точка входу ===
     public static class Program
     {
         public static void Main()
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            // Динамічне створення об’єкта через покажчик на базовий клас
-            Vector obj;
+            // --- Приклади створення окремих об'єктів ---
+            var vector = new Vector4(1, 5, 3, 2);
+            var matrix = new Matrix4x4(
+                1, 2, 3, 4,
+                5, 6, 7, 8,
+                9, 10, 11, 12,
+                13, 14, 15, 16
+            );
 
-            Console.Write("Введіть тип об’єкта (1 - вектор, 2 - матриця): ");
+            Console.WriteLine("=== Звичайні виклики ===");
+            vector.Print();
+            Console.WriteLine($"Максимум у векторі: {vector.GetMaxElement()}\n");
+
+            matrix.Print();
+            Console.WriteLine($"Максимум у матриці: {matrix.GetMaxElement()}\n");
+
+            // --- Демонстрація поліморфізму ---
+            Console.WriteLine("=== Демонстрація поліморфізму ===");
+            Vector4 refVector;
+
+            Console.Write("Введіть тип об’єкта (1 — Vector4, 2 — Matrix4x4): ");
             string choice = Console.ReadLine();
 
             if (choice == "1")
-                obj = new Vector(); // створюємо об’єкт типу Vector
+                refVector = new Vector4();
             else
-                obj = new Matrix(); // створюємо об’єкт типу Matrix
+                refVector = new Matrix4x4();
 
-            // Виклики віртуальних методів — програма не знає наперед, який саме тип!
-            obj.InputElements();
-            obj.Display();
-            Console.WriteLine($"Максимальний елемент: {obj.MaxElement()}");
+            // Виклики віртуальних методів — програма не знає, який тип об'єкта!
+            refVector.Input();
+            refVector.Print();
+            Console.WriteLine($"Максимальний елемент: {refVector.GetMaxElement()}");
         }
     }
 }
